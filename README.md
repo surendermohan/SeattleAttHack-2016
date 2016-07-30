@@ -15,3 +15,6 @@ All you have to do is give the app authentication into your email, and
 the rest is done on our end. We will check your email for any products
 that you have bought from Walmart and automatically find the same product
 at a lower price somewhere else.
+
+# Getting Started
+Make sure you move 'client_secret.json' into the Debug folder
