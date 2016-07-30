@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace ConsoleApplication1
 {
@@ -59,8 +60,24 @@ namespace ConsoleApplication1
 
 
             Console.WriteLine("Finished");
+            WalmartApi("");
             Console.Read();
         }
 
+        //Take theproduct name and find the item based on the 
+        public static void WalmartApi(String name)
+        {
+            WebRequest request = WebRequest.Create(
+              "http://api.walmartlabs.com/v1/search?apiKey=28npz4h9tt2pmgmkh6fse5tr&query=" + name);
+
+            WebResponse response = request.GetResponse();
+
+            Stream dataStream = response.GetResponseStream();
+            //testing to see if the data was responding correctly
+            Console.WriteLine(dataStream.ToString());
+
+
+            response.Close();
+        }
     }
 }
