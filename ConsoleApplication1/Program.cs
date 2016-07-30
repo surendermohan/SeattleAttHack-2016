@@ -93,14 +93,13 @@ namespace ConsoleApplication1
                 string itemName = messageBody.Substring(messageBody.IndexOf("Price Total ") + 12, messageBody.IndexOf("$", messageBody.IndexOf("Price Total ")) - messageBody.IndexOf("Price Total ") - 15);
                 Console.WriteLine("Item Name: " + itemName);
 
-                GetUPC(itemName);
+                Console.WriteLine("UPC: " + GetUPC(itemName));
             }
 
 
             Console.WriteLine("Finished");
             Console.Read();
         }
-
 
         public static String GetMimeString(MessagePart Parts)
         {
@@ -125,17 +124,15 @@ namespace ConsoleApplication1
         }
 
         //Take the product name and find the item's upc
-        public static void GetUPC(String productName)
+        public static string GetUPC(String productName)
         {
             WebClient webclient = new WebClient();
             string formatedName = productName.Replace(" ", "%20");
 
             string result = webclient.DownloadString("http://api.walmartlabs.com/v1/search?apiKey=28npz4h9tt2pmgmkh6fse5tr&query=" + formatedName);
 
-            Console.WriteLine(result.IndexOf("upc\":\""));
-            //string upc = result.Substring(result.IndexOf("upc\":\"") + 6, result.IndexOf("\"", result.IndexOf("upc\":\"")) - result.IndexOf("upc\":\"") - 6);
-
-            //Console.WriteLine(upc);
+            string upc = result.Substring(result.IndexOf("upc\":\"") + 6, result.IndexOf("\"", result.IndexOf("upc\":\"") + 6) - result.IndexOf("upc\":\"") - 6);
+            return upc;
         }
     }
 }
