@@ -5,7 +5,7 @@ Seattle Att IoT Hackathon 2016 - Yoosh
 Authors: Surender Mohan, KS Madaan, Matthew Calligaro, Tenzin Khando and Nikhil Grover
 
 # What does it do?
-The Walmart Price Exploitersaves you money on any product you buy online 
+The Walmart Price Exploiter saves you money on any product you buy online 
 at Walmart.com by comparing prices of the products you buy to a variety
 of competitors, sending you a notification to take advantage of 
 Walmart's Price Guarantee Policy if a lower price is found.
