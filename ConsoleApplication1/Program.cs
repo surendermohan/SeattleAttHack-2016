@@ -44,14 +44,19 @@ namespace ConsoleApplication1
             });
 
             UsersResource.MessagesResource.ListRequest messagesRequest = service.Users.Messages.List("me");
-            messagesRequest.Q = "from:tkhando@pioneer-inc.com";
+            messagesRequest.Q = "matthewcalligaro@hotmail.com";
             IList<Message> messages = messagesRequest.Execute().Messages;
 
-            UsersResource.MessagesResource.GetRequest messageRequest = service.Users.Messages.Get("me", messages[0].Id);
-            messageRequest.Format = UsersResource.MessagesResource.GetRequest.FormatEnum.Minimal;
-            Message message = messageRequest.Execute();
+            for (int i = 0; i < messages.Count; i++)
+            {
+                UsersResource.MessagesResource.GetRequest messageRequest = service.Users.Messages.Get("me", messages[i].Id);
+                messageRequest.Format = UsersResource.MessagesResource.GetRequest.FormatEnum.Minimal;
+                Message message = messageRequest.Execute();
 
-            Console.WriteLine(message.Snippet);
+                Console.WriteLine(message.Snippet);
+                Console.WriteLine();
+            }
+
 
             Console.WriteLine("Finished");
             Console.Read();
