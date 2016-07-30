@@ -5,13 +5,13 @@ using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
+using System.Net.Mail;
+using System.Net;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Net;
-using System.Net.Mail;
 using Newtonsoft.Json;
 
 namespace ConsoleApplication1
@@ -31,7 +31,7 @@ namespace ConsoleApplication1
             using (FileStream stream = new FileStream("client_secret.json", FileMode.Open, FileAccess.Read))
             {
                 string credPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
-                credPath = Path.Combine(credPath, ".credentials/gmail-dotnet-quickstart2.json");
+                credPath = Path.Combine(credPath, ".credentials/gmail-dotnet-quickstart3.json");
 
                 credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
                     GoogleClientSecrets.Load(stream).Secrets,
@@ -48,8 +48,6 @@ namespace ConsoleApplication1
                 HttpClientInitializer = credential,
                 ApplicationName = ApplicationName,
             });
-
-            //SendMessage();
 
             Console.WriteLine("...Awaiting Input (load, update, or exit)");
             string input = Console.ReadLine();
@@ -195,37 +193,6 @@ namespace ConsoleApplication1
             }
 
             return price;
-        }
-
-        public static void SendMessage()
-        {
-            MailMessage message = new AE.Net.Mail.MailMessage
-            {
-                Subject = "Your Subject",
-                Body = "Hello, World, from Gmail API!",
-                From = new MailAddress("[you]@gmail.com")
-            };
-            message.To.Add(new MailAddress("me"));
-            message.ReplyToList.Add(message.From); 
-            StringWriter msgStr = new StringWriter();
-            //message.Save(msgStr);
-
-            var result = service.Users.Messages.Send(new Message
-            {
-                Raw = Base64UrlEncode(msgStr.ToString())
-            }, "me").Execute();
-
-            Console.WriteLine("Message ID {0} sent.", result.Id);
-        }
-
-        private static string Base64UrlEncode(string input)
-        {
-            var inputBytes = System.Text.Encoding.UTF8.GetBytes(input);
-            // Special "url-safe" base64 encode.
-            return Convert.ToBase64String(inputBytes)
-              .Replace('+', '-')
-              .Replace('/', '_')
-              .Replace("=", "");
         }
     }
 }
