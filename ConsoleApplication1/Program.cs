@@ -24,6 +24,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
+using Newtonsoft.Json;
 
 namespace ConsoleApplication1
 {
@@ -31,6 +32,9 @@ namespace ConsoleApplication1
     {
         static string[] Scopes = { GmailService.Scope.GmailReadonly };
         static string ApplicationName = "Gmail API .NET Quickstart";
+        static GmailService service;
+
+        static List<ItemWatch> itemWatches = new List<ItemWatch>();
 
         static void Main(string[] args)
         {
@@ -47,28 +51,44 @@ namespace ConsoleApplication1
                     "user",
                     CancellationToken.None,
                     new FileDataStore(credPath, true)).Result;
-                //Console.WriteLine("Credential file saved to: " + credPath);
+                Console.WriteLine("Credential file saved to: " + credPath + "\n");
             }
 
             // Create Gmail API service.
-            GmailService service = new GmailService(new BaseClientService.Initializer()
+            service = new GmailService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
                 ApplicationName = ApplicationName,
             });
 
+            Console.WriteLine("...Awaiting Input (load, update, or exit)");
+            string input = Console.ReadLine();
+            while (input != "exit")
+            {
+                if (input.Equals("load"))
+                {
+                    LoadNewPurchases();
+                }
+                else if (input.Equals("update"))
+                {
+                    UpdateSavings();
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input");
+                }
+
+                Console.WriteLine("\n...Awaiting Input (load, update, or exit)");
+                input = Console.ReadLine();
+            }
+
+        }
+
+        public static void LoadNewPurchases()
+        {
             UsersResource.MessagesResource.ListRequest messagesRequest = service.Users.Messages.List("me");
             messagesRequest.Q = "from:matthewcalligaro@hotmail.com";
             IList<Message> messages = messagesRequest.Execute().Messages;
-
-            //for (int i = 0; i < messages.Count; i++)
-            //{
-            //    UsersResource.MessagesResource.GetRequest messageRequest = service.Users.Messages.Get("me", messages[i].Id);
-            //    messageRequest.Format = UsersResource.MessagesResource.GetRequest.FormatEnum.Minimal;
-            //    Message message = messageRequest.Execute();
-
-            //    //Console.WriteLine(i + ": " + message.Snippet);
-            //}
 
             for (int i = 0; i < messages.Count; i++)
             {
@@ -93,14 +113,45 @@ namespace ConsoleApplication1
                 string itemName = messageBody.Substring(messageBody.IndexOf("Price Total ") + 12, messageBody.IndexOf("$", messageBody.IndexOf("Price Total ")) - messageBody.IndexOf("Price Total ") - 15);
                 Console.WriteLine("Item Name: " + itemName);
 
-                Console.WriteLine("UPC: " + GetUPC(itemName));
+                string upc = GetUPC(itemName);
+                Console.WriteLine("UPC: " + upc);
+
+                try
+                {
+                    itemWatches.Add(new ItemWatch(upc, Double.Parse(price), itemName));
+                    Console.WriteLine("Load Sucessful");
+                }
+                catch
+                {
+                    Console.WriteLine("An error occured in reading the price");
+                }
             }
-
-
-            Console.WriteLine("Finished");
-            Console.Read();
         }
 
+        public static void UpdateSavings()
+        {
+            if (itemWatches.Count == 0)
+            {
+                Console.WriteLine("You currently have no items to watch");
+            }
+            for (int i = 0; i < itemWatches.Count; i++)
+            {
+                double newPrice = GetPrice(itemWatches[i].upc);
+
+                if (newPrice != Double.NaN)
+                {
+                    if (newPrice < itemWatches[i].price)
+                    {
+                        Console.WriteLine("Product Name: " + itemWatches[i].name);
+                        Console.WriteLine("Purchase Price: $" + itemWatches[i].price);
+                        Console.WriteLine("Current Price: $" + newPrice);
+                        Console.WriteLine("Amount to be earned: $" + (itemWatches[i].price - newPrice));
+                        Console.WriteLine("% to be earned: " + ((int)((itemWatches[i].price - newPrice)/itemWatches[i].price * 10000) / 100.0) + "%");
+                    }
+                }
+            }
+        }
+        
         public static String GetMimeString(MessagePart Parts)
         {
             String Body = "";
@@ -123,7 +174,6 @@ namespace ConsoleApplication1
             return Body;
         }
 
-        //Take the product name and find the item's upc
         public static string GetUPC(String productName)
         {
             WebClient webclient = new WebClient();
@@ -133,6 +183,28 @@ namespace ConsoleApplication1
 
             string upc = result.Substring(result.IndexOf("upc\":\"") + 6, result.IndexOf("\"", result.IndexOf("upc\":\"") + 6) - result.IndexOf("upc\":\"") - 6);
             return upc;
+
+            //dynamic jsonResult = JsonConvert.DeserializeObject<dynamic>(result);
+            //return jsonResult.upc;            
+        }
+
+        public static double GetPrice(string upc)
+        {
+            WebClient webclient = new WebClient();
+
+            string result = webclient.DownloadString("http://api.walmartlabs.com/v1/search?apiKey=28npz4h9tt2pmgmkh6fse5tr&query=" + upc);
+            string strPrice = result.Substring(result.IndexOf("salePrice\":") + 11, result.IndexOf(",", result.IndexOf("salePrice\":") + 11) - result.IndexOf("salePrice\":") - 11);
+            double price;
+            try
+            {
+                price = Double.Parse(strPrice);
+            }
+            catch
+            {
+                price = Double.NaN;
+            }
+
+            return price;
         }
     }
 }
